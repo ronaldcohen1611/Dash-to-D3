@@ -3,31 +3,6 @@ import { ComboBox } from './components/ui/combobox';
 import * as d3 from 'd3';
 import tips from './tips.csv'
 
-const frameworks = [
-  {
-    value: 'next.js',
-    label: 'Next.js',
-  },
-  {
-    value: 'sveltekit',
-    label: 'SvelteKit',
-  },
-  {
-    value: 'nuxt.js',
-    label: 'Nuxt.js',
-  },
-  {
-    value: 'remix',
-    label: 'Remix',
-  },
-  {
-    value: 'astro',
-    label: 'Astro',
-  },
-];
-
-
-
 function App() {
   const [numerical_cols, setNumCols] = useState<d3.DSVParsedArray<{
     tip: number;
@@ -40,6 +15,7 @@ function App() {
     day: string,
     time: string,
   }> | null>(null);
+  let numerical_labels = null;
 
   useEffect(() => { 
     const getNumericalData = async () => {
@@ -84,10 +60,26 @@ function App() {
     getCatagoricalData();
   },[])
 
+  if (numerical_cols !== null) {
+    numerical_labels = Object.keys(numerical_cols[0]).map((catagory) => {
+      return {
+        value: catagory,
+        label: (catagory[0].toUpperCase() + catagory.slice(1)).replace(
+          '_',
+          ' '
+        ),
+      };
+    });
+  }
+
   return (
     <div className="flex w-full">
       <div className="flex justify-center w-full">
-        <ComboBox items={frameworks} placeholder='Search me daddy'/>
+        <ComboBox
+          items={numerical_labels !== null ? numerical_labels : [{label: '', value: ''}]}
+          placeholder="Select Column"
+          className="text-black"
+        />
       </div>
     </div>
   );

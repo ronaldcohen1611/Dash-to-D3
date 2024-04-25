@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../shared/popover';
 
 interface Props {
   className?: string;
+  containerClassName?: string;
   items: {
     label: string;
     value: string;
@@ -23,14 +24,20 @@ interface Props {
   searchPlaceholder?: string;
 }
 
-export function ComboBox({ className, items, placeholder, searchPlaceholder }: Props) {
+export function ComboBox({
+  className,
+  items,
+  placeholder,
+  searchPlaceholder,
+  containerClassName,
+}: Props) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState('');
 
   return (
-    <div className={cn('', className)}>
+    <div className={cn('', containerClassName)}>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild className={cn(className)}>
           <Button
             variant="outline"
             role="combobox"
@@ -45,7 +52,7 @@ export function ComboBox({ className, items, placeholder, searchPlaceholder }: P
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandInput placeholder={searchPlaceholder ?? "Search..."} />
+            <CommandInput placeholder={searchPlaceholder ?? 'Search...'} />
             <CommandEmpty>No framework found.</CommandEmpty>
             <CommandGroup>
               <CommandList>

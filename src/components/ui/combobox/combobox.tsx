@@ -5,13 +5,15 @@ import { cn } from '../../../lib/utils';
 import { Button } from '../../shared/button';
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
 } from '../../shared/command';
-import { Popover, PopoverContent, PopoverTrigger } from '../../shared/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../../shared/popover';
 
 interface Props {
   className?: string;
@@ -22,6 +24,7 @@ interface Props {
   }[];
   placeholder?: string;
   searchPlaceholder?: string;
+  onValueChange: (value: string) => void;
 }
 
 export function ComboBox({
@@ -30,9 +33,10 @@ export function ComboBox({
   placeholder,
   searchPlaceholder,
   containerClassName,
+  onValueChange,
 }: Props) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState('');
+  const [value, setValue] = React.useState('total_bill');
 
   return (
     <div className={cn('', containerClassName)}>
@@ -52,17 +56,20 @@ export function ComboBox({
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandInput placeholder={searchPlaceholder ?? 'Search...'} />
-            <CommandEmpty>No framework found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="bg-black text-white">
               <CommandList>
                 {items.map((items) => (
                   <CommandItem
                     key={items.value}
                     value={items.value}
                     onSelect={(currentValue) => {
-                      setValue(currentValue === value ? '' : currentValue);
+                      // Check if the current item is already selected
+                      if (currentValue !== value) {
+                        setValue(currentValue);
+                        onValueChange(currentValue);
+                      }
                       setOpen(false);
+                      return null
                     }}
                   >
                     <Check

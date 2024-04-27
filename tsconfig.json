@@ -5,9 +5,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "typeRoots" : [
-      "node_modules/@types",
-    ] ,
+    "typeRoots": ["node_modules/@types"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -23,7 +21,7 @@
     "paths": {
       "@/*": ["*"]
       // ...
-    }
+    },
   },
-  "include": ["src"]
+  "include": ["src", "src/lib/global.d.ts"]
 }

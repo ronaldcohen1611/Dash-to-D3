@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ComboBox } from './components/ui/combobox';
 import * as d3 from 'd3';
 import tips from './tips.csv'
+import { BarChart } from './components/ui/barchart';
 
 function App() {
   const [numerical_cols, setNumCols] = useState<d3.DSVParsedArray<{
@@ -15,6 +16,7 @@ function App() {
     day: string,
     time: string,
   }> | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string | null>('total_bill')
   let numerical_labels = null;
 
   useEffect(() => { 
@@ -74,12 +76,30 @@ function App() {
 
   return (
     <div className="flex w-full">
-      <div className="flex justify-center w-full">
-        <ComboBox
-          items={numerical_labels !== null ? numerical_labels : [{label: '', value: ''}]}
-          placeholder="Select Column"
-          className="text-black"
-        />
+      <div className="flex w-full flex-col">
+        <div className="bg-zinc-950 w-full">
+          <div className="flex text-center items-center justify-center space-x-4">
+            <p className="font-bold">Select Target: </p>
+            <ComboBox
+              items={
+                numerical_labels !== null
+                  ? numerical_labels
+                  : [{ label: '', value: '' }]
+              }
+              placeholder="Select Column"
+              className="text-white mb-4 mt-4 bg-black hover:bg-black hover:text-white"
+              containerClassName="flex justify-center"
+              onValueChange={setSelectedValue}
+            />
+          </div>
+        </div>
+        <div className="flex justify-center w-full">
+          <BarChart
+            numerical_data={numerical_cols}
+            categorical_data={catagorical_cols}
+            selectedValue={selectedValue}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,32 +1,60 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import { RadioGroup, RadioGroupItem } from '../../shared/radio_group';
 
-const RadioButtons = () => { 
+const RadioButtons = ({ setCategoricalSelectedValue }) => {
+  const items = ['sex', 'smoker', 'day', 'time'];
   return (
-    <div>These are the radio buttons</div>
-  )
-}
+    <div className="">
+      <RadioGroup
+        className="flex w-full justify-between relative top-2 right-2"
+        defaultValue="day"
+      >
+        {items.map((item, idx) => {
+          return (
+            <div key={idx} className="flex items-center gap-2">
+              <label className="">{item}</label>
+              <RadioGroupItem
+                className="text-white border-white"
+                value={item}
+                id={item}
+                onClick={(e) => {
+                  setCategoricalSelectedValue(e.target.value);
+                }}
+              >
+                {item}
+              </RadioGroupItem>
+            </div>
+          );
+        })}
+      </RadioGroup>
+    </div>
+  );
+};
 
 const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
   const svgRef = useRef();
-  // Combine numerical and categorical data into an array of objects
-  const combinedData =
-    numerical_data &&
-    numerical_data.map((numData, index) => ({
-      ...numData,
-      day: categorical_data && categorical_data[index].day,
-    }));
+  const [categoricalSelectedValue, setCategoricalSelectedValue] = useState('day');
 
-   const computeSum = (values, selectedProperty) => {
-     return d3.sum(values, (d) => d[selectedProperty]);
-   };
+  const computeSum = (values, selectedProperty) => {
+    return d3.sum(values, (d) => d[selectedProperty]);
+  };
 
   const genChart = useCallback(() => {
-    const orderedDays = ['Thur', 'Fri', 'Sat', 'Sun',];
-
+    const orderedDays = ['Thur', 'Fri', 'Sat', 'Sun'];
+    // Combine numerical and categorical data into an array of objects
+    const combinedData =
+      numerical_data &&
+      numerical_data.map((numData, index) => {
+        const categoryValue =
+          categorical_data && categorical_data[index][categoricalSelectedValue];
+        return {
+          ...numData,
+          [categoricalSelectedValue]: categoryValue,
+        };
+      });
     if (!combinedData) return;
-    
+
     const tempData = d3.flatRollup(
       combinedData,
       (values) => {
@@ -34,13 +62,15 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
         const average = totalSum / values.length;
         return average;
       },
-      (d) => d.day
+      (d) => d[categoricalSelectedValue]
     );
 
-    tempData && tempData.sort((a,b) => {
-      return orderedDays.indexOf(a[0]) - orderedDays.indexOf(b[0])
-    })
-
+    if (categoricalSelectedValue === 'day') {
+      tempData &&
+        tempData.sort((a, b) => {
+          return orderedDays.indexOf(a[0]) - orderedDays.indexOf(b[0]);
+        });
+    }
 
     // Clear previous chart *** THIS IS KEYYY ***
     d3.select(svgRef.current).selectAll('*').remove();
@@ -97,12 +127,12 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
         return yScale(d[1]) + (h - yScale(d[1])) / 2;
       })
       .attr('text-anchor', 'middle')
-      .attr('alignment-baseline', 'middle') 
+      .attr('alignment-baseline', 'middle')
       .text(function (d) {
         return d[1].toFixed(2); // Display the value of the bar
       })
       .style('fill', 'white');
-  }, [combinedData, selectedValue]);
+  }, [categoricalSelectedValue, categorical_data, numerical_data, selectedValue]);
 
   useEffect(() => {
     genChart();
@@ -110,7 +140,11 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
 
   return (
     <div className="">
-      <RadioButtons />
+      <div className="">
+        <RadioButtons
+          setCategoricalSelectedValue={setCategoricalSelectedValue}
+        />
+      </div>
       <svg className="svg" ref={svgRef}></svg>
     </div>
   );

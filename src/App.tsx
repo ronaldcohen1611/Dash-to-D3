@@ -3,6 +3,7 @@ import { ComboBox } from './components/ui/combobox';
 import * as d3 from 'd3';
 import tips from './tips.csv'
 import { BarChart } from './components/ui/barchart';
+import { CorrelationMap } from './components/ui/correlation_map';
 
 function App() {
   const [numerical_cols, setNumCols] = useState<d3.DSVParsedArray<{
@@ -75,7 +76,7 @@ function App() {
   }
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full h-full">
       <div className="flex w-full flex-col">
         <div className="bg-zinc-950 w-full">
           <div className="flex text-center items-center justify-center space-x-4">
@@ -93,13 +94,20 @@ function App() {
             />
           </div>
         </div>
-        <div className="flex justify-center w-full">
-          <BarChart
-            numerical_data={numerical_cols}
-            categorical_data={catagorical_cols}
-            selectedValue={selectedValue}
-          />
+        <div className="flex w-full">
+          <div className="flex ml-14">
+            <BarChart
+              numerical_data={numerical_cols}
+              categorical_data={catagorical_cols}
+              selectedValue={selectedValue}
+              className="flex flex-col"
+            />
+          </div>
+          <div className="flex justify-center w-full">
+            <CorrelationMap numerical_cols={numerical_cols} />
+          </div>
         </div>
+        <div className="mt-4 h-[800px]">Scatter plot</div>
       </div>
     </div>
   );

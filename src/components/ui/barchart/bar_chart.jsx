@@ -1,21 +1,22 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import { RadioGroup, RadioGroupItem } from '../../shared/radio_group';
+import { cn } from '../../../lib/utils';
 
 const RadioButtons = ({ setCategoricalSelectedValue }) => {
   const items = ['sex', 'smoker', 'day', 'time'];
   return (
     <div className="">
       <RadioGroup
-        className="flex w-full justify-between relative top-2 right-2"
+        className="flex w-full justify-center relative top-2 right-2 gap-4"
         defaultValue="day"
       >
         {items.map((item, idx) => {
           return (
-            <div key={idx} className="flex items-center gap-2">
-              <label className="">{item}</label>
+            <div key={idx} className="flex items-center">
+              <label className="">{item.slice(0,1).toUpperCase() + item.slice(1)}</label>
               <RadioGroupItem
-                className="text-white border-white"
+                className="text-white border-white ml-1"
                 value={item}
                 id={item}
                 onClick={(e) => {
@@ -32,7 +33,7 @@ const RadioButtons = ({ setCategoricalSelectedValue }) => {
   );
 };
 
-const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
+const BarChart = ({ numerical_data, categorical_data, selectedValue, className }) => {
   const svgRef = useRef();
   const [categoricalSelectedValue, setCategoricalSelectedValue] = useState('day');
 
@@ -75,14 +76,14 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
     // Clear previous chart *** THIS IS KEYYY ***
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const w = 400;
+    const w = 800;
     const h = 300;
     const svg = d3
       .select(svgRef.current)
       .attr('width', w)
       .attr('height', h)
       .style('overflow', 'visible')
-      .style('margin-top', '20px');
+      .style('margin-top', '20px')
 
     const xScale = d3
       .scaleBand()
@@ -98,8 +99,8 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    svg.append('g').call(xAxis).attr('transform', `translate(0, ${h})`);
-    svg.append('g').call(yAxis);
+    svg.append('g').call(xAxis).attr('transform', `translate(0, ${h})`).style('font-size', '12px');
+    svg.append('g').call(yAxis).style('font-size', '12px');
 
     svg
       .selectAll('.bar')
@@ -139,7 +140,7 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue }) => {
   }, [genChart]);
 
   return (
-    <div className="">
+    <div className={cn(className, '')}>
       <div className="">
         <RadioButtons
           setCategoricalSelectedValue={setCategoricalSelectedValue}

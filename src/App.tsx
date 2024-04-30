@@ -80,41 +80,42 @@ function App() {
   }
 
   return (
-    <div className="flex w-full h-full">
-      <div className="flex w-full flex-col">
-        <div className="bg-[#232423] w-full">
-          <div className="flex text-center items-center justify-center space-x-4">
-            <p className="font-bold">Select Target: </p>
-            <ComboBox
-              items={
-                numerical_labels !== null
-                  ? numerical_labels
-                  : [{ label: '', value: '' }]
-              }
-              placeholder="Select Column"
-              className="text-white mb-4 mt-4 bg-black hover:bg-black hover:text-white"
-              containerClassName="flex justify-center"
-              onValueChange={setSelectedValue}
-            />
-          </div>
+    <div className="flex flex-col w-full h-full justify-center">
+      <div className="bg-[#232423] w-full">
+        <div className="flex text-center items-center justify-center space-x-4">
+          <p className="font-bold">Select Target: </p>
+          <ComboBox
+            items={
+              numerical_labels !== null
+                ? numerical_labels
+                : [{ label: '', value: '' }]
+            }
+            placeholder="Select Column"
+            className="text-white mb-4 mt-4 bg-black hover:bg-black hover:text-white"
+            containerClassName="flex justify-center"
+            onValueChange={setSelectedValue}
+          />
         </div>
-        <div className="flex w-full pt-4 space-x-4 justify-center">
-          <div className="flex ml-0 border border-zinc-500 p-16 rounded-md">
-            <BarChart
-              numerical_data={numerical_cols}
-              categorical_data={catagorical_cols}
-              selectedValue={selectedValue}
-              className="flex flex-col"
-            />
+      </div>
+      <div className="flex w-full justify-center">
+        <div className="flex w-fit flex-col p-4">
+          <div className="flex w-full pt-4 space-x-4 justify-center">
+            <div className="flex ml-0 border border-zinc-500 p-16 rounded-md">
+              <BarChart
+                numerical_data={numerical_cols}
+                categorical_data={catagorical_cols}
+                selectedValue={selectedValue}
+                className="flex flex-col"
+              />
+            </div>
+            <div className="flex justify-center w-fit p-4 border border-zinc-500 rounded-md">
+              <CorrelationMap
+                numerical_cols={numerical_cols}
+                setSelectedPair={setSelectedPair}
+              />
+            </div>
           </div>
-          <div className="flex justify-center w-fit p-4 border border-zinc-500 rounded-md">
-            <CorrelationMap
-              numerical_cols={numerical_cols}
-              setSelectedPair={setSelectedPair}
-            />
-          </div>
-        </div>
-        <div className="flex justify-center mb-40">
+          <div className="flex justify-center mb-20">
           <div className="mt-8 justify-center w-fit p-4 border border-zinc-500 rounded-md">
             {selectedPair !== null ? (
               <ScatterPlot
@@ -125,6 +126,7 @@ function App() {
               'Select an element from the Correlation Matrix to display Scatter Plot'
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>

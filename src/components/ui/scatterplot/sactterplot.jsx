@@ -10,7 +10,7 @@ const ScatterPlot = ({ numerical_cols, selectedPair }) => {
     var data = numerical_cols;
 
     var margin = { top: 10, right: 10, bottom: 50, left: 50 },
-      w = window.innerWidth - margin.left - margin.right - 200,
+      w = 1547 - margin.left - margin.right - 200,
       h = 300 - margin.top - margin.bottom;
 
     d3.select(scatterRef.current).selectAll('*').remove();

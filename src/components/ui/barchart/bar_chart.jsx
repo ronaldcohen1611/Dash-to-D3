@@ -1,7 +1,7 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
-import { RadioGroup, RadioGroupItem } from '../../shared/radio_group';
 import { cn } from '../../../lib/utils';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { RadioGroup, RadioGroupItem } from '../../shared/radio_group';
 
 const RadioButtons = ({ setCategoricalSelectedValue }) => {
   const items = ['sex', 'smoker', 'day', 'time'];
@@ -14,13 +14,17 @@ const RadioButtons = ({ setCategoricalSelectedValue }) => {
         {items.map((item, idx) => {
           return (
             <div key={idx} className="flex items-center">
-              <label className="">{item.slice(0,1).toUpperCase() + item.slice(1)}</label>
+              <label className="">
+                {item.slice(0, 1).toUpperCase() + item.slice(1)}
+              </label>
               <RadioGroupItem
                 className="text-white border-white ml-1"
                 value={item}
                 id={item}
                 onClick={(e) => {
-                  setCategoricalSelectedValue(e.target.value);
+                  setCategoricalSelectedValue((prevVal) => {
+                    return e.target.value ?? prevVal;
+                  });
                 }}
               >
                 {item}
@@ -33,9 +37,15 @@ const RadioButtons = ({ setCategoricalSelectedValue }) => {
   );
 };
 
-const BarChart = ({ numerical_data, categorical_data, selectedValue, className }) => {
+const BarChart = ({
+  numerical_data,
+  categorical_data,
+  selectedValue,
+  className,
+}) => {
   const svgRef = useRef();
-  const [categoricalSelectedValue, setCategoricalSelectedValue] = useState('day');
+  const [categoricalSelectedValue, setCategoricalSelectedValue] =
+    useState('day');
 
   const computeSum = (values, selectedProperty) => {
     return d3.sum(values, (d) => d[selectedProperty]);
@@ -76,14 +86,14 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue, className }
     // Clear previous chart *** THIS IS KEYYY ***
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const w = 800;
+    const w = 600;
     const h = 300;
     const svg = d3
       .select(svgRef.current)
       .attr('width', w)
       .attr('height', h)
       .style('overflow', 'visible')
-      .style('margin-top', '20px')
+      .style('margin-top', '20px');
 
     const xScale = d3
       .scaleBand()
@@ -99,7 +109,11 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue, className }
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    svg.append('g').call(xAxis).attr('transform', `translate(0, ${h})`).style('font-size', '12px');
+    svg
+      .append('g')
+      .call(xAxis)
+      .attr('transform', `translate(0, ${h})`)
+      .style('font-size', '12px');
     svg.append('g').call(yAxis).style('font-size', '12px');
 
     svg
@@ -112,7 +126,7 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue, className }
       .attr('y', (data) => yScale(data[1]))
       .attr('width', xScale.bandwidth())
       .attr('height', (data) => h - yScale(data[1]))
-      .style('fill', 'royalblue');
+      .style('fill', '#232423');
 
     // Labels
     svg
@@ -130,10 +144,45 @@ const BarChart = ({ numerical_data, categorical_data, selectedValue, className }
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
       .text(function (d) {
-        return d[1].toFixed(2); // Display the value of the bar
+        return d[1].toFixed(2);
       })
       .style('fill', 'white');
-  }, [categoricalSelectedValue, categorical_data, numerical_data, selectedValue]);
+
+    svg
+      .append('text')
+      .attr('class', 'y_label')
+      .attr('text-anchor', 'middle')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', -50 + 10)
+      .attr('x', -h / 2)
+      .text(
+        selectedValue.replace('_', ' ').replace(/\b\w/g, function (char) {
+          return char.toUpperCase();
+        })
+      )
+      .style('fill', 'white')
+      .style('font-size', '14px');
+
+    svg
+      .append('text')
+      .attr('class', 'x_label')
+      .attr('text-anchor', 'middle')
+      .attr('x', w / 2)
+      .attr('y', h + 50)
+      .text(
+        categoricalSelectedValue
+          .replace('_', ' ')
+          .replace(/\b\w/g, function (char) {
+            return char.toUpperCase();
+          })
+      )
+      .style('fill', 'white').style('font-size', '14px')
+  }, [
+    categoricalSelectedValue,
+    categorical_data,
+    numerical_data,
+    selectedValue,
+  ]);
 
   useEffect(() => {
     genChart();

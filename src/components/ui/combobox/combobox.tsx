@@ -23,7 +23,6 @@ interface Props {
     value: string;
   }[];
   placeholder?: string;
-  searchPlaceholder?: string;
   onValueChange: (value: string) => void;
 }
 
@@ -31,7 +30,6 @@ export function ComboBox({
   className,
   items,
   placeholder,
-  searchPlaceholder,
   containerClassName,
   onValueChange,
 }: Props) {
@@ -63,13 +61,12 @@ export function ComboBox({
                     key={items.value}
                     value={items.value}
                     onSelect={(currentValue) => {
-                      // Check if the current item is already selected
                       if (currentValue !== value) {
                         setValue(currentValue);
                         onValueChange(currentValue);
                       }
                       setOpen(false);
-                      return null
+                      return null;
                     }}
                   >
                     <Check

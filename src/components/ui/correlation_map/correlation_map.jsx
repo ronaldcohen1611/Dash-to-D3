@@ -1,11 +1,19 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import chroma from 'chroma-js';
 var jz = require('jeezy');
 var data2grid = require('data2grid');
 
-const CorrelationMap = ({ numerical_cols }) => {
+const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
   const gridRef = useRef(null);
+  const legendRef = useRef(null);
+
+  var margin = { top: 50, bottom: 50, left: 60, right: 50 };
+
+  var dim = 500;
+
+  var width = dim - margin.left - margin.right,
+    height = dim - margin.top - margin.bottom;
 
   useEffect(() => {
     if (!numerical_cols) return;
@@ -36,15 +44,9 @@ const CorrelationMap = ({ numerical_cols }) => {
       return d.row;
     });
 
-    var margin = { top: 50, bottom: 50, left: 50, right: 50 };
-
-    var dim = 500;
-
-    var width = dim - margin.left - margin.right,
-      height = dim - margin.top - margin.bottom;
-
     // Clear previous chart *** THIS IS KEYYY ***
     d3.select(gridRef.current).selectAll('*').remove();
+    d3.select(legendRef.current).selectAll('*').remove();
 
     d3.select('body')
       .append('div')
@@ -73,7 +75,9 @@ const CorrelationMap = ({ numerical_cols }) => {
       .paddingInner(padding)
       .domain(d3.range(1, rows + 1));
 
-    var c = chroma.scale(['purple', 'yellow']).domain([extent[0], extent[1]]);
+    var c = chroma
+      .scale(['0D0887', 'DB5C67', '860BA3', 'yellow'])
+      .domain([extent[0], 0.5, 0.6, 1]);
 
     var x_axis = d3.axisTop(y).tickFormat(function (d, i) {
       return cols[i];
@@ -82,9 +86,17 @@ const CorrelationMap = ({ numerical_cols }) => {
       return cols[i];
     });
 
-    svg.append('g').attr('class', 'x axis').call(x_axis);
+    svg
+      .append('g')
+      .attr('class', 'x axis')
+      .call(x_axis)
+      .style('font-size', '14px');
 
-    svg.append('g').attr('class', 'y axis').call(y_axis);
+    svg
+      .append('g')
+      .attr('class', 'y axis')
+      .call(y_axis)
+      .style('font-size', '14px');
 
     svg
       .selectAll('rect')
@@ -110,142 +122,130 @@ const CorrelationMap = ({ numerical_cols }) => {
 
     svg.selectAll('rect');
 
-    // Create a <g> element to hold the text elements
     var textGroup = svg.append('g').attr('class', 'text-group');
 
-    // Append text labels to the <g> element
     textGroup
       .selectAll('text')
       .data(grid)
       .enter()
       .append('text')
       .text(function (d) {
-        return d.correlation.toFixed(2); // Format the correlation coefficient
+        return d.correlation.toFixed(2);
       })
       .attr('x', function (d) {
-        return x(d.column) + x.bandwidth() / 2; // Position text in the middle horizontally
+        return x(d.column) + x.bandwidth() / 2;
       })
       .attr('y', function (d) {
-        return y(d.row) + y.bandwidth() / 2; // Position text in the middle vertically
+        return y(d.row) + y.bandwidth() / 2;
       })
-      .attr('text-anchor', 'middle') // Center align text horizontally
-      .attr('dominant-baseline', 'middle') // Center align text vertically
-      .style('fill', 'black'); // Change the color of the text
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'middle')
+      .style('fill', 'black')
+      .style('pointer-events', 'none');
 
-    // Append the <g> element containing text elements to the SVG grid
     svg.node().appendChild(textGroup.node());
 
-    // d3.selectAll('rect')
-    //   .on('mouseover', function (d) {
-    //     d3.select(this).classed('selected', true);
-
-    //     d3.select('.tip').style('display', 'block');
-    //     // .html(d.column_x + ', ' + d.column_y + ': ' + (d.correlation.toFixed(2) ?? ''));
-
-    //     var row_pos = y(d.row);
-    //     var col_pos = x(d.column);
-    //     var tip_pos = d3.select('.tip').node().getBoundingClientRect();
-    //     var tip_width = tip_pos.width;
-    //     var tip_height = tip_pos.height;
-    //     var grid_pos = d3.select('#grid').node().getBoundingClientRect();
-    //     var grid_left = grid_pos.left;
-    //     var grid_top = grid_pos.top;
-
-    //     var left =
-    //       grid_left + col_pos + margin.left + x.bandwidth() / 2 - tip_width / 2;
-    //     var top = grid_top + row_pos + margin.top - tip_height - 5;
-
-    //     d3.select('.tip')
-    //       .style('left', left + 'px')
-    //       .style('top', top + 'px');
-
-    //     d3.select('.x.axis .tick:nth-of-type(' + d.column + ') text').classed(
-    //       'selected',
-    //       true
-    //     );
-    //     d3.select('.y.axis .tick:nth-of-type(' + d.row + ') text').classed(
-    //       'selected',
-    //       true
-    //     );
-    //     d3.select('.x.axis .tick:nth-of-type(' + d.column + ') line').classed(
-    //       'selected',
-    //       true
-    //     );
-    //     d3.select('.y.axis .tick:nth-of-type(' + d.row + ') line').classed(
-    //       'selected',
-    //       true
-    //     );
-    //   })
-    //   .on('mouseout', function () {
-    //     d3.selectAll('rect').classed('selected', false);
-    //     d3.select('.tip').style('display', 'none');
-    //     d3.selectAll('.axis .tick text').classed('selected', false);
-    //     d3.selectAll('.axis .tick line').classed('selected', false);
-    //   });
-
-    // // legend scale
-    // var legend_top = 15;
-    // var legend_height = 15;
-
-    // var legend_svg = d3
-    //   .select('#legend')
-    //   .append('svg')
-    //   .attr('width', width + margin.left + margin.right)
-    //   .attr('height', legend_height + legend_top)
-    //   .append('g')
-    //   .attr('transform', 'translate(' + margin.left + ', ' + legend_top + ')');
-
-    // var defs = legend_svg.append('defs');
-
-    // var gradient = defs.append('linearGradient').attr('id', 'linear-gradient');
-
-    // var stops = [
-    //   { offset: 0, color: 'tomato', value: extent[0] },
-    //   { offset: 0.5, color: 'white', value: 0 },
-    //   { offset: 1, color: 'steelblue', value: extent[1] },
-    // ];
-
-    // gradient
-    //   .selectAll('stop')
-    //   .data(stops)
-    //   .enter()
-    //   .append('stop')
-    //   .attr('offset', function (d) {
-    //     return 100 * d.offset + '%';
-    //   })
-    //   .attr('stop-color', function (d) {
-    //     return d.color;
-    //   });
-
-    // legend_svg
-    //   .append('rect')
-    //   .attr('width', width)
-    //   .attr('height', legend_height)
-    //   .style('fill', 'url(#linear-gradient)');
-
-    // legend_svg
-    //   .selectAll('text')
-    //   .data(stops)
-    //   .enter()
-    //   .append('text')
-    //   .attr('x', function (d) {
-    //     return width * d.offset;
-    //   })
-    //   .attr('dy', -3)
-    //   .style('text-anchor', function (d, i) {
-    //     return i === 0 ? 'start' : i === 1 ? 'middle' : 'end';
-    //   })
-    //   .text(function (d, i) {
-    //     return d.value !== undefined
-    //       ? d.value.toFixed(2) + (i === 2 ? '>' : '')
-    //       : ''; // Check if value is defined before formatting
-    //   });
-  }, [numerical_cols]);
+    svg
+      .selectAll('rect')
+      .on('mouseover', function (d) {
+        d3.select(this).style('stroke', 'green').style('stroke-width', 4);
+      })
+      .on('mouseout', function () {
+        d3.select(this).style('stroke', 'none');
+      })
+      .on('click', function (d) {
+        const obj = d['srcElement']['__data__'];
+        setSelectedPair({ x: obj.column_x, y: obj.column_y });
+      });
+  }, [
+    height,
+    margin.bottom,
+    margin.left,
+    margin.right,
+    margin.top,
+    numerical_cols,
+    setSelectedPair,
+    width,
+  ]);
 
   return (
     <div>
-      {/* <div id="legend"></div> */}
-      <div ref={gridRef}></div>
+      <h2 className="flex justify-center items-center text-lg">
+        Correlation Matrix
+      </h2>
+      <div className="flex">
+        <div ref={gridRef}></div>
+        <div id="container" className="">
+          <svg
+            style={{ fill: 'white' }}
+            height={530}
+            className="axis w-24"
+          >
+            <defs>
+              <linearGradient
+                id="legend-linear-gradient"
+                x1="0%"
+                x2="0%"
+                y1="0%"
+                y2="100%"
+              >
+                <stop offset="0%" stopColor="#ffec47"></stop>
+                <stop offset="20%" stopColor="#FBAE32"></stop>
+                <stop offset="40%" stopColor="#DB5C67"></stop>
+                <stop offset="60%" stopColor="#9D3984"></stop>
+                <stop offset="80%" stopColor="#860BA3"></stop>
+                <stop offset="100%" stopColor="#0D0887"></stop>
+              </linearGradient>
+            </defs>
+            <rect
+              x="25"
+              y="20"
+              width="25"
+              height={500}
+              className="fill-legend"
+            ></rect>
+            <g
+              transform="translate(60, 20)"
+              fill="none"
+              fontSize="10"
+              fontFamily="sans-serif"
+              textAnchor="start"
+            >
+              <path stroke="currentColor" d={`M0,0V${500}`}></path>
+              <g fill="currentColor" transform={`translate(0, ${0})`}>
+                <text dy="0.32em" y="0" x="5" fontSize={12}>
+                  1.0
+                </text>
+              </g>
+              <g fill="currentColor" transform={`translate(0, ${100})`}>
+                <text dy="0.32em" y="0" x="5" fontSize={12}>
+                  0.9
+                </text>
+              </g>
+              <g fill="currentColor" transform={`translate(0, ${200})`}>
+                <text dy="0.32em" y="0" x="5" fontSize={12}>
+                  0.8
+                </text>
+              </g>
+              <g fill="currentColor" transform={`translate(0, ${300})`}>
+                <text dy="0.32em" y="0" x="5" fontSize={12}>
+                  0.7
+                </text>
+              </g>
+              <g fill="currentColor" transform={`translate(0, ${400})`}>
+                <text dy="0.32em" y="0" x="5" fontSize={12}>
+                  0.6
+                </text>
+              </g>
+              <g fill="currentColor" transform={`translate(0, ${500})`}>
+                <text dy="0.32em" y="0" x="5" fontSize={12}>
+                  0.5
+                </text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
     </div>
   );
 };

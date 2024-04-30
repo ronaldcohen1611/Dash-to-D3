@@ -5,7 +5,6 @@ import { ComboBox } from './components/ui/combobox';
 import { BarChart } from './components/ui/barchart';
 import { CorrelationMap } from './components/ui/correlation_map';
 import { ScatterPlot } from './components/ui/scatterplot';
-import { ColorPicker } from './components/ui/color_picker';
 
 function App() {
   const [numerical_cols, setNumCols] = useState<d3.DSVParsedArray<{
@@ -23,8 +22,6 @@ function App() {
     'total_bill'
   );
   const [selectedPair, setSelectedPair] = useState(null);
-  const [barChartColor, setBarChartColor] = useState('#232423');
-  const [scatterPlotColor, setScatterPlotColor] = useState('white');
   let numerical_labels = null;
 
   useEffect(() => {
@@ -84,9 +81,9 @@ function App() {
 
   return (
     <div className="flex flex-col w-full h-full justify-center">
-      <div className="bg-[#232423] w-full">
+      <div className="bg-[#EDEDED] w-full">
         <div className="flex text-center items-center justify-center space-x-4">
-          <p className="font-bold">Select Target: </p>
+          <p className="">Select Target: </p>
           <ComboBox
             items={
               numerical_labels !== null
@@ -94,36 +91,24 @@ function App() {
                 : [{ label: '', value: '' }]
             }
             placeholder="Select Column"
-            className="text-white mb-4 mt-4 bg-black hover:bg-black hover:text-white"
+            className="mb-4 mt-4 "
             containerClassName="flex justify-center"
             onValueChange={setSelectedValue}
           />
-          <div className="flex items-center gap-4">
-            <label className="font-bold ">Select Bar Chart Color: </label>
-            <ColorPicker setGraphColor={setBarChartColor} />
-          </div>
-          <div className="flex items-center gap-4">
-            <label className="font-bold ">Select Scatter Plot Color: </label>
-            <ColorPicker
-              setGraphColor={setScatterPlotColor}
-              defaultColor="#ffffff"
-            />
-          </div>
         </div>
       </div>
       <div className="flex w-full justify-center">
         <div className="flex w-fit flex-col p-4">
           <div className="flex w-full pt-4 space-x-4 justify-center">
-            <div className="flex ml-0 border border-zinc-500 p-16 rounded-md">
+            <div className="flex ml-0 border border-zinc-200 p-16 rounded-md">
               <BarChart
                 numerical_data={numerical_cols}
                 categorical_data={catagorical_cols}
                 selectedValue={selectedValue}
-                graphColor={barChartColor}
                 className="flex flex-col"
               />
             </div>
-            <div className="flex justify-center w-fit p-4 border border-zinc-500 rounded-md">
+            <div className="flex justify-center w-fit p-4 border border-zinc-200 rounded-md">
               <CorrelationMap
                 numerical_cols={numerical_cols}
                 setSelectedPair={setSelectedPair}
@@ -131,12 +116,11 @@ function App() {
             </div>
           </div>
           <div className="flex justify-center mb-20">
-            <div className="mt-8 justify-center w-fit p-4 border border-zinc-500 rounded-md">
+            <div className="mt-8 justify-center w-fit p-4 border border-zinc-200 rounded-md">
               {selectedPair !== null ? (
                 <ScatterPlot
                   numerical_cols={numerical_cols}
                   selectedPair={selectedPair}
-                  graphColor={scatterPlotColor}
                 />
               ) : (
                 'Select an element from the Correlation Matrix to display Scatter Plot'

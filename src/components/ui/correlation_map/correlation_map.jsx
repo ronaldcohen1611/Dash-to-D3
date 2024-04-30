@@ -1,8 +1,6 @@
 import { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
-import chroma from 'chroma-js';
 var jz = require('jeezy');
-var data2grid = require('data2grid');
 
 const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
   const gridRef = useRef(null);
@@ -14,6 +12,25 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
 
   var width = dim - margin.left - margin.right,
     height = dim - margin.top - margin.bottom;
+
+  // helper function to add row column indexes to each obj in data
+  const getGrid = (data) => { 
+    if (!data) return null;
+    const columnLen = Object.keys(data[0]).length;
+    let objArr = []
+    let rowCounter = 1;
+    let colCounter = 1;
+    for (let i = 0; i < data.length; i++) {
+      if (colCounter === columnLen + 1) {
+        rowCounter++;
+        colCounter = 1;
+      }
+      objArr.push({...data[i], row: rowCounter, column: colCounter})
+      colCounter++
+
+    }
+    return objArr;
+  }
 
   useEffect(() => {
     if (!numerical_cols) return;
@@ -38,8 +55,8 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
           return d !== 1;
         })
     );
+    const grid = getGrid(corr);
 
-    var grid = data2grid.grid(corr);
     var rows = d3.max(grid, function (d) {
       return d.row;
     });
@@ -49,62 +66,85 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
     d3.select(legendRef.current).selectAll('*').remove();
 
     d3.select('body')
-      .append('div')
+      .selectAll('.tip')
+      .data([0])
+      .join('div')
       .attr('class', 'tip')
       .style('display', 'none');
 
     var svg = d3
       .select(gridRef.current)
-      .append('svg')
+      .selectAll('svg')
+      .data([0])
+      .join('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
-      .append('g')
+      .selectAll('g')
+      .data([0])
+      .join('g')
       .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
-
-    var padding = 0.1;
 
     var x = d3
       .scaleBand()
       .range([0, width])
-      .paddingInner(padding)
       .domain(d3.range(1, rows + 1));
 
     var y = d3
       .scaleBand()
       .range([0, height])
-      .paddingInner(padding)
       .domain(d3.range(1, rows + 1));
 
-    var c = chroma
-      .scale(['0D0887', 'DB5C67', '860BA3', 'yellow'])
-      .domain([extent[0], 0.5, 0.6, 1]);
+    var colorScale = d3
+      .scaleLinear()
+      .domain([extent[0], 0.6, 0.7, 0.8, 0.9, 1])
+      .range([
+        '#1A078C',
+        '#7301A8',
+        '#B73289',
+        '#E16562',
+        '#FCA736',
+        '#F0F921',
+      ]);
 
-    var x_axis = d3.axisTop(y).tickFormat(function (d, i) {
-      return cols[i];
-    });
+    var x_axis = d3
+      .axisBottom(y)
+      .tickFormat(function (d, i) {
+        return cols[i];
+      })
+      .tickSize(0)
+      .tickPadding(5)
+
     var y_axis = d3.axisLeft(x).tickFormat(function (d, i) {
       return cols[i];
-    });
+    }).tickSize(0).tickPadding(5);
 
     svg
-      .append('g')
+      .selectAll('.x_axis_g')
+      .data([0])
+      .join('g')
       .attr('class', 'x axis')
       .call(x_axis)
-      .style('font-size', '14px');
+      .style('font-size', '14px')
+      .attr('transform', 'translate(0, ' + height + ')')
+      .select('.domain')
+      .attr('stroke', 'transparent');
 
     svg
-      .append('g')
+      .selectAll('.y_axis_g')
+      .data([0])
+      .join('g')
       .attr('class', 'y axis')
       .call(y_axis)
-      .style('font-size', '14px');
+      .style('font-size', '14px')
+      .select('.domain')
+      .attr('stroke', 'transparent');
 
     svg
       .selectAll('rect')
       .data(grid, function (d) {
         return d.column_a + d.column_b;
       })
-      .enter()
-      .append('rect')
+      .join('rect')
       .attr('x', function (d) {
         return x(d.column);
       })
@@ -114,21 +154,22 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
       .attr('width', x.bandwidth())
       .attr('height', y.bandwidth())
       .style('fill', function (d) {
-        return c(d.correlation);
+        return colorScale(d.correlation);
       })
       .style('opacity', 1e-6)
       .transition()
       .style('opacity', 1);
 
-    svg.selectAll('rect');
-
-    var textGroup = svg.append('g').attr('class', 'text-group');
+    var textGroup = svg
+      .selectAll('.text-group')
+      .data([null])
+      .join('g')
+      .attr('class', 'text-group');
 
     textGroup
       .selectAll('text')
       .data(grid)
-      .enter()
-      .append('text')
+      .join('text')
       .text(function (d) {
         return d.correlation.toFixed(2);
       })
@@ -140,7 +181,7 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
       })
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'middle')
-      .style('fill', 'black')
+      .style('fill', (d) => (d.correlation > 0.7 ? 'black' : 'white'))
       .style('pointer-events', 'none');
 
     svg.node().appendChild(textGroup.node());
@@ -168,17 +209,19 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
     width,
   ]);
 
+  const legendHeight = 350
+
   return (
     <div>
       <h2 className="flex justify-center items-center text-lg">
         Correlation Matrix
       </h2>
-      <div className="flex">
+      <div className="flex items-center">
         <div ref={gridRef}></div>
         <div id="container" className="">
           <svg
             style={{ fill: 'white' }}
-            height={530}
+            height={legendHeight + 30}
             className="axis w-24"
           >
             <defs>
@@ -189,20 +232,20 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
                 y1="0%"
                 y2="100%"
               >
-                <stop offset="0%" stopColor="#ffec47"></stop>
-                <stop offset="20%" stopColor="#FBAE32"></stop>
-                <stop offset="40%" stopColor="#DB5C67"></stop>
-                <stop offset="60%" stopColor="#9D3984"></stop>
-                <stop offset="80%" stopColor="#860BA3"></stop>
-                <stop offset="100%" stopColor="#0D0887"></stop>
+                <stop offset="0%" stopColor="#F0F921"></stop>
+                <stop offset="20%" stopColor="#FCA736"></stop>
+                <stop offset="40%" stopColor="#E16562"></stop>
+                <stop offset="60%" stopColor="#B73289"></stop>
+                <stop offset="80%" stopColor="#7301A8"></stop>
+                <stop offset="100%" stopColor="#1A078C"></stop>
               </linearGradient>
             </defs>
             <rect
               x="25"
               y="20"
               width="25"
-              height={500}
-              className="fill-legend"
+              height={legendHeight}
+              className="fill-legend bg-green-400"
             ></rect>
             <g
               transform="translate(60, 20)"
@@ -211,34 +254,51 @@ const CorrelationMap = ({ numerical_cols, setSelectedPair }) => {
               fontFamily="sans-serif"
               textAnchor="start"
             >
-              <path stroke="currentColor" d={`M0,0V${500}`}></path>
-              <g fill="currentColor" transform={`translate(0, ${0})`}>
-                <text dy="0.32em" y="0" x="5" fontSize={12}>
+              <g
+                fill="currentColor"
+                transform={`translate(0, ${(legendHeight / 5) * 0})`}
+              >
+                <text dy="0.32em" y="0" x="0" fontSize={12}>
                   1.0
                 </text>
               </g>
-              <g fill="currentColor" transform={`translate(0, ${100})`}>
-                <text dy="0.32em" y="0" x="5" fontSize={12}>
+              <g
+                fill="currentColor"
+                transform={`translate(0, ${(legendHeight / 5) * 1})`}
+              >
+                <text dy="0.32em" y="0" x="0" fontSize={12}>
                   0.9
                 </text>
               </g>
-              <g fill="currentColor" transform={`translate(0, ${200})`}>
-                <text dy="0.32em" y="0" x="5" fontSize={12}>
+              <g
+                fill="currentColor"
+                transform={`translate(0, ${(legendHeight / 5) * 2})`}
+              >
+                <text dy="0.32em" y="0" x="0" fontSize={12}>
                   0.8
                 </text>
               </g>
-              <g fill="currentColor" transform={`translate(0, ${300})`}>
-                <text dy="0.32em" y="0" x="5" fontSize={12}>
+              <g
+                fill="currentColor"
+                transform={`translate(0, ${(legendHeight / 5) * 3})`}
+              >
+                <text dy="0.32em" y="0" x="0" fontSize={12}>
                   0.7
                 </text>
               </g>
-              <g fill="currentColor" transform={`translate(0, ${400})`}>
-                <text dy="0.32em" y="0" x="5" fontSize={12}>
+              <g
+                fill="currentColor"
+                transform={`translate(0, ${(legendHeight / 5) * 4})`}
+              >
+                <text dy="0.32em" y="0" x="0" fontSize={12}>
                   0.6
                 </text>
               </g>
-              <g fill="currentColor" transform={`translate(0, ${500})`}>
-                <text dy="0.32em" y="0" x="5" fontSize={12}>
+              <g
+                fill="currentColor"
+                transform={`translate(0, ${(legendHeight / 5) * 5})`}
+              >
+                <text dy="0.32em" y="0" x="0" fontSize={12}>
                   0.5
                 </text>
               </g>

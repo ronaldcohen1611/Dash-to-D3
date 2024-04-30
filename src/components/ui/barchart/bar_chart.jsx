@@ -15,10 +15,10 @@ const RadioButtons = ({ setCategoricalSelectedValue }) => {
           return (
             <div key={idx} className="flex items-center">
               <label className="">
-                {item.slice(0, 1).toUpperCase() + item.slice(1)}
+                {item}
               </label>
               <RadioGroupItem
-                className="text-white border-white ml-1"
+                className=" ml-1"
                 value={item}
                 id={item}
                 onClick={(e) => {
@@ -42,7 +42,6 @@ const BarChart = ({
   categorical_data,
   selectedValue,
   className,
-  graphColor,
 }) => {
   const svgRef = useRef();
   const [categoricalSelectedValue, setCategoricalSelectedValue] =
@@ -89,6 +88,7 @@ const BarChart = ({
 
     const w = 600;
     const h = 300;
+    
     const svg = d3
       .select(svgRef.current)
       .attr('width', w)
@@ -100,89 +100,103 @@ const BarChart = ({
       .scaleBand()
       .domain(tempData.map((data) => data[0]))
       .range([0, w])
-      .padding(0.5);
+      .paddingInner(0.05);
 
     const yScale = d3
       .scaleLinear()
       .domain([0, d3.max(tempData, (data) => data[1])])
       .range([h, 0]);
 
-    const xAxis = d3.axisBottom(xScale);
-    const yAxis = d3.axisLeft(yScale);
+    svg
+      .selectAll('.x_axis_g')
+      .data([0])
+      .join('g')
+      .attr('class', 'x_axis_g')
+      .attr('transform', `translate(0, ${h})`)
+      .call(
+        (g) =>
+          g
+            .call(d3.axisBottom(xScale).tickSize(0).tickPadding(10))
+            .select('.domain') 
+            .attr('stroke', 'transparent')
+      ).style('font-size', '14px');
 
     svg
-      .append('g')
-      .call(xAxis)
-      .attr('transform', `translate(0, ${h})`)
-      .style('font-size', '12px');
-    svg.append('g').call(yAxis).style('font-size', '12px');
+      .selectAll('.y_axis_g')
+      .data([0])
+      .join('g')
+      .attr('class', 'y_axis_g')
+      .attr('transform', `translate(0,0)`)
+      .call((g) =>
+        g
+          .call(
+            d3
+              .axisLeft(yScale)
+              .ticks(yScale.domain()[1] / 5)
+              .tickSize(0)
+              .tickPadding(12)
+          )
+          .select('.domain')
+          .attr('stroke', 'transparent')
+      )
+      .style('font-size', '14px');  
 
     svg
       .selectAll('.bar')
       .data(tempData)
-      .enter()
-      .append('rect')
+      .join('rect')
       .attr('class', 'bar')
       .attr('x', (data) => xScale(data[0]))
       .attr('y', (data) => yScale(data[1]))
       .attr('width', xScale.bandwidth())
       .attr('height', (data) => h - yScale(data[1]))
-      .style('fill', graphColor);
+      .style('fill', '#B1B1B1');
 
     // Labels
     svg
       .selectAll('.bar-label')
       .data(tempData)
-      .enter()
-      .append('text')
+      .join('text')
       .attr('class', 'bar-label')
       .attr('x', function (d) {
         return xScale(d[0]) + xScale.bandwidth() / 2;
       })
       .attr('y', function (d) {
-        return yScale(d[1]) + (h - yScale(d[1])) / 2;
+        return yScale(d[1]) + 15;
       })
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
       .text(function (d) {
         return d[1].toFixed(2);
       })
-      .style('fill', 'white');
-
+      .style('fill', '#959595');
+      
+    // Labels
     svg
-      .append('text')
+      .selectAll('.y_label')
+      .data([0])
+      .join('text')
       .attr('class', 'y_label')
       .attr('text-anchor', 'middle')
       .attr('transform', 'rotate(-90)')
       .attr('y', -50 + 10)
       .attr('x', -h / 2)
-      .text(
-        selectedValue.replace('_', ' ').replace(/\b\w/g, function (char) {
-          return char.toUpperCase();
-        })
-      )
-      .style('fill', 'white')
+      .text(selectedValue + ' (average)')
       .style('font-size', '14px');
 
     svg
-      .append('text')
+      .selectAll('.x_label')
+      .data([0])
+      .join('text')
       .attr('class', 'x_label')
       .attr('text-anchor', 'middle')
       .attr('x', w / 2)
       .attr('y', h + 50)
-      .text(
-        categoricalSelectedValue
-          .replace('_', ' ')
-          .replace(/\b\w/g, function (char) {
-            return char.toUpperCase();
-          })
-      )
-      .style('fill', 'white')
+      .text(categoricalSelectedValue)
       .style('font-size', '14px');
   }, [
     categoricalSelectedValue,
     categorical_data,
-    graphColor,
     numerical_data,
     selectedValue,
   ]);

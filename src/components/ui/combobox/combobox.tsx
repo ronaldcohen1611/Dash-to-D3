@@ -54,7 +54,7 @@ export function ComboBox({
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandGroup className="bg-black text-white">
+            <CommandGroup className="">
               <CommandList>
                 {items.map((items) => (
                   <CommandItem

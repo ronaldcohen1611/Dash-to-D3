@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
 
-const ScatterPlot = ({ numerical_cols, selectedPair }) => {
+const ScatterPlot = ({ numerical_cols, selectedPair, graphColor }) => {
   const scatterRef = useRef(null);
 
   useEffect(() => {
@@ -90,9 +90,9 @@ const ScatterPlot = ({ numerical_cols, selectedPair }) => {
         return y_scale(d[selectedPair.y]);
       })
       .attr('r', 3)
-      .style('fill', 'white')
+      .style('fill', graphColor === '#232423' ? 'white' : graphColor)
       .style('opacity', 0.6);
-  }, [numerical_cols, selectedPair]);
+  }, [numerical_cols, selectedPair, graphColor]);
 
   return <svg ref={scatterRef}></svg>;
 };

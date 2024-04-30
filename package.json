@@ -25,6 +25,7 @@
     "d3-svg-legend": "^2.25.6",
     "data2grid": "^1.0.2",
     "jeezy": "^1.13.1",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.372.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
+    "@types/lodash": "^4.17.0",
     "tailwindcss": "^3.4.3"
   }
 }

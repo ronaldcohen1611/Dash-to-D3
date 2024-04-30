@@ -42,6 +42,7 @@ const BarChart = ({
   categorical_data,
   selectedValue,
   className,
+  graphColor,
 }) => {
   const svgRef = useRef();
   const [categoricalSelectedValue, setCategoricalSelectedValue] =
@@ -126,7 +127,7 @@ const BarChart = ({
       .attr('y', (data) => yScale(data[1]))
       .attr('width', xScale.bandwidth())
       .attr('height', (data) => h - yScale(data[1]))
-      .style('fill', '#232423');
+      .style('fill', graphColor);
 
     // Labels
     svg
@@ -176,10 +177,12 @@ const BarChart = ({
             return char.toUpperCase();
           })
       )
-      .style('fill', 'white').style('font-size', '14px')
+      .style('fill', 'white')
+      .style('font-size', '14px');
   }, [
     categoricalSelectedValue,
     categorical_data,
+    graphColor,
     numerical_data,
     selectedValue,
   ]);

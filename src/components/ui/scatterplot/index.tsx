@@ -1,1 +1,1 @@
-export * from './sactterplot'
+export * from './scatterplot'
